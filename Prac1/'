@@ -1,0 +1,24 @@
+import numpy as np
+import cv2 as cv
+
+img = cv.imread('Images/prac01ex01img02.png')
+
+if src is None:
+	print( 'Could not open or read the image!' )
+	exit(0)
+ 
+print( "Image name: prac01ex01img02.png" )
+print( "Image dimensions: ", img.shape )
+
+brgPlanes = cv.split( img )
+
+
+histSize = 10
+histRange = (0, 256) #Upper bound is exclusive
+accumulate = False
+
+bHist = cv.calcHist(brgPlanes, [0], None, [histSize], histRange, accumulate=accumulate)
+rHist = cv.calcHist(brgPlanes, [1], None, [histSize], histRange, accumulate=accumulate)
+gHist = cv.calcHist(brgPlanes, [2], None, [histSize], histRange, accumulate=accumulate)
+
+
