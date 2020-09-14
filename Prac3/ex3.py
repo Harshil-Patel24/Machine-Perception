@@ -3,54 +3,64 @@ import cv2 as cv
 import math
 import sys
 
+img = gray = dst = cdst = cdstP = lines = linesP = [None]*3
 
-img = cv.imread('Images/prac03ex02img01.jpg')
+filenames = ['Images/prac03ex03img02.jpg','Images/prac03ex03img01.png','Images/prac03ex01img01.png']
 
-#cv.imshow("img", img)
-#cv.waitKey(0)
+for ii in range(3):
+	#cv.imshow("img", img)
+	#cv.waitKey(0)
 
-gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+	img[ii] = cv.imread(filenames[ii])
 
-if img is None: 
-	print('Error opening image')
+	gray[ii] = cv.cvtColor(img[ii], cv.COLOR_BGR2GRAY)
 
-#cv.imshow("Img", gray)
-#cv.waitKey(0)
+	if img[ii] is None:
+		print('Error opening image')
 
-dst = cv.Canny(gray, 50, 200, None, 3)
+	# cv.imshow("Img", gray[ii])
+	# cv.waitKey(0)
 
-#cv.imshow("dst", dst)
-#cv.waitKey(0)
+	dst[ii] = cv.Canny(gray[ii], 50, 200, None, 3)
 
-cdst = cv.cvtColor(dst, cv.COLOR_BGR2GRAY)
+	# cv.imshow("dst", dst[ii])
+	# cv.waitKey(0)
 
-cdstP = np.copy(cdst)
+	cdst[ii] = cv.cvtColor(dst[ii], cv.COLOR_GRAY2BGR)
 
+	# cv.imshow("dst", cdst[ii])
+	# cv.waitKey(0)
 
-lines = cv.HoughLines(dst, 1, np.pi / 180, 150, None, 0, 0)
+	#cdst = np.copy(dst)
+	cdstP[ii] = np.copy(cdst[ii])
 
-if lines is not None:
-	for i in range(0, len(lines)):
-		rho = lines[i][0][0]
-		theta = lines[i][0][1]
-		a = math.cos(theta)
-		b = math.sin(theta)
-		x0 = a * rho
-		y0 = b * rho
-		pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
-		pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
-		cv.line(cdst, pt1, pt2, (0,0,255), 3, cv.LINE_AA)
+	cv.imshow("dst", dst[ii])
+	cv.waitKey(0)
 
-linesP = cv.HoughLinesP(dst, 1, np.pi / 180, 50, 10)
+	lines[ii] = cv.HoughLines(dst[ii], 1, (np.pi / 180), 150, None, 0, 0)
 
-if linesP is not None:
-	for i in range(0, len(linesP)):
-		l = linesP[i][0]
-		cv.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0,0,255), 3, cv.LINE_AA)
+	if lines[ii] is not None:
+		for i in range(0, len(lines[ii])):
+			rho = lines[ii][i][0][0]
+			theta = lines[ii][i][0][1]
+			a = math.cos(theta)
+			b = math.sin(theta)
+			x0 = a * rho
+			y0 = b * rho
+			pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
+			pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
+			cv.line(cdst[ii], pt1, pt2, (0,0,255), 1, cv.LINE_AA)
 
-cv.imshow("Source", img)
-cv.imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst)
-cv.imshow("Detected Lines (in red) - Probablilistic Line Transform", cdstP)
+	linesP[ii] = cv.HoughLinesP(dst[ii], 1, np.pi / 180, 50, 10)
+
+	if linesP[ii] is not None:
+		for i in range(0, len(linesP[ii])):
+			l = linesP[ii][i][0]
+			cv.line(cdstP[ii], (l[0], l[1]), (l[2], l[3]), (0,0,255), 1, cv.LINE_AA)
+
+	cv.imshow("Source", img[ii])
+	cv.imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst[ii])
+	cv.imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP[ii])
 
 cv.waitKey()
 

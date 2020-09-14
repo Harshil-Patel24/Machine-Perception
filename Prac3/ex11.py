@@ -23,7 +23,7 @@ for ii in range(3):
 	
 	img.pop(ii)[dst[ii]>0.01*dst[ii].max()]=[0,0,255]
 
-	cv.imshow('dst',img[ii])
+	cv.imshow('dst', img[ii])
 
 if cv.waitKey(0) & 0xff == 27:
 	cv.destroyAllWindows()

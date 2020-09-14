@@ -1,7 +1,7 @@
 import numpy as np
 import cv2 as cv
 
-img = cv.imread('../../Downloads/Lenna.png')
+img = cv.imread('Images/prac01ex04img01.png')
 
 if img is None:
 	print( 'Could not open or read the image!' )

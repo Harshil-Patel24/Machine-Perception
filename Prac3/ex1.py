@@ -11,8 +11,8 @@ for ii in range(3):
 
 	img[ii] = cv.imread( filename )
 	#img2[ii] = img[ii].copy()
-	gray[ii] = cv.cvtColor(img[ii], cv.COLOR_BGR2GRAY) 
-	gray[ii] = np.float32( gray[ii] )
+	gray[ii] = cv.cvtColor(img[ii], cv.COLOR_BGR2GRAY)
+	gray[ii] = np.float32(gray[ii])
 
 	#print(type(gray[ii]))
 	#cv.imshow("test", gray[ii])
@@ -27,9 +27,9 @@ for ii in range(3):
 	transform = np.asarray([dst[ii]>0.01*dst[ii].max()])
 	transform = transform.astype(np.int)
 
-	transform = transform*[0,0,255]
+	#transform = transform*[0,0,255]
 
-	for pixel in img[ii]:
+	#for pixel in img[ii]:
 		
 		
 	
@@ -37,9 +37,14 @@ for ii in range(3):
 	
 	#[pixel = [0,0,255] for pixel in transform]
 
-	print(transform)
 	#img[ii][dst[ii]>0.01*dst[ii].max()]=[0,0,255]
-	
+
+
+
+	for pixel in img[ii]:
+		if pixel[dst[ii]>0.01*dst[ii].max()]:
+			pixel = [0,0,255]
+
 	#[img[ii][pixel] for pixel in  expression 	
 	
 	#Shi-Tomasi detector stuff
@@ -56,7 +61,6 @@ for ii in range(3):
 if cv.waitKey(0) & 0xff == 27:
 	cv.destroyAllWindows()
 
-	
 
 
 
