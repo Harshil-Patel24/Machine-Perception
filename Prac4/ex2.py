@@ -10,6 +10,7 @@ otsu = cv.bitwise_not(otsu)
 
 # cv.imshow("Binarised", otsu)
 # cv.waitKey()
+
 connectivity = 8
 num_labels, labels, stats, centroids = cv.connectedComponentsWithStats(otsu, connectivity, cv.CV_32S)
 
