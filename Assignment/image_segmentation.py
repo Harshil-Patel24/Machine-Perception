@@ -2,9 +2,23 @@ import cv2 as cv
 import numpy as np
 
 # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_ml/py_kmeans/py_kmeans_opencv/py_kmeans_opencv.html
+# MAYBE https://www.thepythoncode.com/article/kmeans-for-image-segmentation-opencv-python
 
 diamond = cv.imread('Images/diamond.png')
 dugong = cv.imread('Images/dugong.jpg')
+
+# Removing the green colour channel makes the dugong stand out more from the background
+dugong[:,:,1] = np.zeros([dugong.shape[0], dugong.shape[1]])
+
+kernel = np.ones((2,2))
+
+dugong = cv.morphologyEx(dugong, cv.MORPH_OPEN, kernel)
+
+# cv.imshow("RED", dugong)
+# cv.waitKey()
+
+# diamond = cv.cvtColor(diamond, cv.COLOR_BGR2HSV)
+# dugong = cv.cvtColor(dugong, cv.COLOR_BGR2HSV)
 
 Z_diamond = diamond.reshape((-1, 3))
 Z_diamond = np.float32(Z_diamond)
@@ -12,20 +26,44 @@ Z_dugong = dugong.reshape((-1, 3))
 Z_dugong = np.float32(Z_dugong)
 
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 10, 0.2)
-K = 2
-ret_diamond, label_diamond, center_diamond = cv.kmeans(Z_diamond, K, None, criteria, 10, cv.KMEANS_RANDOM_CENTERS)
-ret_dugong, label_dugong, center_dugong = cv.kmeans(Z_dugong, K, None, criteria, 10, cv.KMEANS_RANDOM_CENTERS)
+K = 3
+ret_diamond, labels_diamond, center_diamond = cv.kmeans(Z_diamond, K, None, criteria, 10, cv.KMEANS_RANDOM_CENTERS)
+ret_dugong, labels_dugong, center_dugong = cv.kmeans(Z_dugong, K, None, criteria, 10, cv.KMEANS_RANDOM_CENTERS)
 
 center_diamond = np.uint8(center_diamond)
 center_dugong = np.uint8(center_dugong)
-res_diamond = center_diamond[label_diamond.flatten()]
-res_dugong = center_dugong[label_dugong.flatten()]
-res2_diamond = res_diamond.reshape((diamond.shape))
-res2_dugong = res_dugong.reshape((dugong.shape))
 
-# res2_dugong[label_dugong == 2] = [0, 0, 0]
-# res2_dugong[:,:,2] = np.zeros([res2_dugong.shape[0], res2_dugong.shape[1]])
+labels_diamond = labels_diamond.flatten()
+labels_dugong = labels_dugong.flatten()
 
-cv.imshow("Diamond k-means: ", res2_diamond)
-cv.imshow("Dugong k-means: ", res2_dugong)
+segmented_diamond = center_diamond[labels_diamond.flatten()]
+segmented_dugong = center_dugong[labels_dugong.flatten()]
+
+# Make the white segment black
+color_diamond = 1
+segmented_diamond[labels_diamond == color_diamond] = [0, 0, 0]
+
+# Make the water around the dugong segment black
+color_dugong_1 = 1
+segmented_dugong[labels_dugong == color_dugong_1] = [0, 0, 0]
+
+color_dugong_2 = 2
+segmented_dugong[labels_dugong == color_dugong_2] = [0, 0, 0]
+
+segmented_diamond = segmented_diamond.reshape(diamond.shape)
+segmented_dugong = segmented_dugong.reshape(dugong.shape)
+
+# segmented_diamond = cv.cvtColor(segmented_diamond, cv.COLOR_HSV2BGR)
+# segmented_dugong = cv.cvtColor(segmented_dugong, cv.COLOR_HSV2BGR)
+
+# masked_dugong = np.copy(dugong)
+# masked_dugong = masked_dugong.reshape((-1, 3))
+# color = 0
+# masked_dugong[labels_dugong == color] = [0, 0, 0]
+# masked_dugong = masked_dugong.reshape(dugong.shape)
+
+# cv.imshow("Masked dugong",masked_dugong)
+
+cv.imshow("Diamond: ", segmented_diamond)
+cv.imshow("Dugong: ", segmented_dugong)
 cv.waitKey()
