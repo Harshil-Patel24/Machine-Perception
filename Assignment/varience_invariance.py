@@ -70,20 +70,6 @@ plt.show()
 
 # ---------------- Harris Corner Detection ----------------
 
-# diamong_harris = cornerHarris(diamond)
-# dugong_harris = cornerHarris(dugong)
-# diamond_30_harris = cornerHarris(rotated_30_diamond)
-# dugong_30_harris = cornerHarris(rotated_30_dugong)
-# diamond_90_harris = cornerHarris(rotated_90_diamond)
-# dugong_90_harris = cornerHarris(rotated_90_dugong)
-# diamond_scaled_harris = cornerHarris(scaled_diamond)
-# dugong_scaled_harris = cornerHarris(scaled_dugong)
-# diamond_scaled_rotated_harris = cornerHarris(rotated_scaled_diamond)
-# dugong_scaled_rotated_harris = cornerHarris(rotated_scaled_dugong)
-
-# corners = [cornerHarris(diamond), cornerHarris(scaled_diamond), cornerHarris(rotated_30_diamond), cornerHarris(rotated_90_diamond), cornerHarris(rotated_scaled_diamond), \
-    # cornerHarris(dugong), cornerHarris(scaled_dugong), cornerHarris(rotated_30_dugong), cornerHarris(rotated_90_dugong), cornerHarris(rotated_scaled_dugong)]
-
 corners = []
 
 for ii, img in enumerate(images):
@@ -116,6 +102,20 @@ axes[9].set_title("Dugong Scaled and Rotated")
 figure.tight_layout()
 plt.show()
 
+filenames_harris = []
+
+filenames_harris.append("Results\Harris\diamond_harris.png")
+filenames_harris.append("Results\Harris\diamond_scaled_harris.png")
+filenames_harris.append("Results\Harris\diamond_rotated_30_harris.png")
+filenames_harris.append("Results\Harris\diamond_rotated_90_harris.png")
+filenames_harris.append("Results\Harris\diamond_rotated_scaled_harris.png")
+filenames_harris.append("Results\Harris\dugong_harris.png")
+filenames_harris.append("Results\Harris\dugong_scaled_harris.png")
+filenames_harris.append("Results\Harris\dugong_rotated_30_harris.png")
+filenames_harris.append("Results\Harris\dugong_rotated_90_harris.png")
+filenames_harris.append("Results\Harris\dugong_rotated_scaled_harris.png")
+
+saveImages(corners, filenames_harris)
 # ---------------- SIFT ----------------
 
 sifts = []
@@ -125,3 +125,17 @@ for ii, img in enumerate(images):
 
 displayImages(sifts)
 
+filenames_sift = []
+
+filenames_sift.append("Results\SIFT\diamond_sift.png")
+filenames_sift.append("Results\SIFT\diamond_scaled_sift.png")
+filenames_sift.append("Results\SIFT\diamond_rotated_30_sift.png")
+filenames_sift.append("Results\SIFT\diamond_rotated_90_sift.png")
+filenames_sift.append("Results\SIFT\diamond_rotated_scaled_sift.png")
+filenames_sift.append("Results\SIFT\dugong_sift.png")
+filenames_sift.append("Results\SIFT\dugong_scaled_sift.png")
+filenames_sift.append("Results\SIFT\dugong_rotated_30_sift.png")
+filenames_sift.append("Results\SIFT\dugong_rotated_90_sift.png")
+filenames_sift.append("Results\SIFT\dugong_rotated_scaled_sift.png")
+
+saveImages(sifts, filenames_sift)

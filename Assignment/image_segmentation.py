@@ -7,18 +7,20 @@ import numpy as np
 diamond = cv.imread('Images/diamond.png')
 dugong = cv.imread('Images/dugong.jpg')
 
-# Removing the green colour channel makes the dugong stand out more from the background
-dugong[:,:,1] = np.zeros([dugong.shape[0], dugong.shape[1]])
+# Removing colour channels to make the dugong stand out more from the background
+# This is to try different combiniation of colour channels to see what works best
+# [0 1 2] is [B G R]
+
+# dugong[:,:,0] = np.zeros([dugong.shape[0], dugong.shape[1]])
+# dugong[:,:,1] = np.zeros([dugong.shape[0], dugong.shape[1]])
+# dugong[:,:,2] = np.zeros([dugong.shape[0], dugong.shape[1]])
 
 kernel = np.ones((2,2))
 
 dugong = cv.morphologyEx(dugong, cv.MORPH_OPEN, kernel)
 
-# cv.imshow("RED", dugong)
-# cv.waitKey()
-
-# diamond = cv.cvtColor(diamond, cv.COLOR_BGR2HSV)
-# dugong = cv.cvtColor(dugong, cv.COLOR_BGR2HSV)
+diamond = cv.cvtColor(diamond, cv.COLOR_BGR2HSV)
+dugong = cv.cvtColor(dugong, cv.COLOR_BGR2HSV)
 
 Z_diamond = diamond.reshape((-1, 3))
 Z_diamond = np.float32(Z_diamond)
@@ -47,7 +49,7 @@ segmented_diamond[labels_diamond == color_diamond] = [0, 0, 0]
 color_dugong_1 = 1
 segmented_dugong[labels_dugong == color_dugong_1] = [0, 0, 0]
 
-color_dugong_2 = 2
+color_dugong_2 = 0
 segmented_dugong[labels_dugong == color_dugong_2] = [0, 0, 0]
 
 segmented_diamond = segmented_diamond.reshape(diamond.shape)
@@ -55,4 +57,7 @@ segmented_dugong = segmented_dugong.reshape(dugong.shape)
 
 cv.imshow("Diamond: ", segmented_diamond)
 cv.imshow("Dugong: ", segmented_dugong)
+# Writing the image to file -- used to save results to compare later
+# cv.imwrite("Results/segmented_diamond_hsv.png", segmented_diamond)
+# cv.imwrite("Results/segmented_dugong_hsv_opening.png", segmented_dugong)
 cv.waitKey()

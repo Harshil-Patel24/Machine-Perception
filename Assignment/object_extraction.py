@@ -6,6 +6,8 @@ import numpy as np
 diamond = cv.imread('Images/diamond.png', cv.IMREAD_GRAYSCALE)
 dugong = cv.imread('Images/dugong.jpg')
 
+# This was used to remove the green channel as an attempt to separate background and foreground further
+# dugong[:,:,1] = np.zeros([dugong.shape[0], dugong.shape[1]])
 
 # We wont gaussian blur the diamond as this is not noisy
 diamond_thresh, diamond_binary = cv.threshold(diamond, 0, 255, cv.THRESH_BINARY_INV+cv.THRESH_OTSU)
@@ -28,9 +30,6 @@ dugong_binary = cv.morphologyEx(dugong_binary, cv.MORPH_CLOSE, kernel)
 
 # Final threshold to make the image a black and white binary image
 dugong_thresh, dugong_binary = cv.threshold(dugong_binary, 0, 255, cv.THRESH_BINARY_INV+cv.THRESH_OTSU)
-
-# cv.imshow("Binary diamond", diamond_binary)
-# cv.imshow("Binary dugong", dugong_binary)
 
 # We will use the built in CCL in opencv with 8 way connectivity
 connectivity = 8
@@ -87,6 +86,11 @@ for ii in range(num_labels_dugong):
              "\n ---------------------------------------- \n"
 
     print(string)
+
+# cv.imwrite("Results/Extraction/diamond_labeled.png", labeled_img_diamond)
+# cv.imwrite("Results/Extraction/dugong_labeled.png", labeled_img_dugong)
+# cv.imwrite("Results/Extraction/diamond_binarized.png", diamond_binary)
+# cv.imwrite("Results/Extraction/dugong_binarized.png", dugong_binary)
 
 cv.imshow("Labeled diamond", labeled_img_diamond)
 cv.imshow("Labeled dugong", labeled_img_dugong)

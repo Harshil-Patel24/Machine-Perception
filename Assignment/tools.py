@@ -154,3 +154,11 @@ def displayImages(images):
 
     figure.tight_layout()
     plt.show()
+
+def saveImages(images, filenames):
+    if len(images) != len(filenames):
+        print("Filenames and images not compatible")
+        return 0
+    
+    for ii, image in enumerate(images):
+        cv.imwrite(filenames[ii], image)
