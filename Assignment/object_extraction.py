@@ -59,11 +59,6 @@ labeled_img_dugong[label_hue_dugong==0] = 0
 
 # https://www.programcreek.com/python/example/89340/cv2.connectedComponentsWithStats
 
-# Get rid of the backgrounds
-# sizes_diamond = stats_diamond[1:, -1]
-# sizes_dugong = stats_diamond[1:, -1]
-# num_labels_diamond -= 1
-# num_labels_dugong -= 1
 
 print("Number of labels for diamond: " + str(num_labels_diamond))
 for ii in range(1, num_labels_diamond):
@@ -96,7 +91,6 @@ for ii in range(num_labels_dugong):
     string = "Label: " + str(ii + 1) + \
              "\n    Area: " + str(area) + \
              "\n    Height: " + str(height) + \
-             "\n    Fraction of Foreground Pixels: %.3f" + \
              "\n    Distribution of FG Pixels in X: " + str(distFGX) + \
              "\n    Distribution of FG Pixels in Y: " + str(distFGY) + \
              "\n ---------------------------------------- \n" % fracFG

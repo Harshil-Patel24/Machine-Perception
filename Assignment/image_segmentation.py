@@ -53,17 +53,6 @@ segmented_dugong[labels_dugong == color_dugong_2] = [0, 0, 0]
 segmented_diamond = segmented_diamond.reshape(diamond.shape)
 segmented_dugong = segmented_dugong.reshape(dugong.shape)
 
-# segmented_diamond = cv.cvtColor(segmented_diamond, cv.COLOR_HSV2BGR)
-# segmented_dugong = cv.cvtColor(segmented_dugong, cv.COLOR_HSV2BGR)
-
-# masked_dugong = np.copy(dugong)
-# masked_dugong = masked_dugong.reshape((-1, 3))
-# color = 0
-# masked_dugong[labels_dugong == color] = [0, 0, 0]
-# masked_dugong = masked_dugong.reshape(dugong.shape)
-
-# cv.imshow("Masked dugong",masked_dugong)
-
 cv.imshow("Diamond: ", segmented_diamond)
 cv.imshow("Dugong: ", segmented_dugong)
 cv.waitKey()
