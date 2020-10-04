@@ -61,21 +61,16 @@ labeled_img_dugong[label_hue_dugong==0] = 0
 
 
 print("Number of labels for diamond: " + str(num_labels_diamond))
-for ii in range(1, num_labels_diamond):
+for ii in range(num_labels_diamond):
     area = stats_diamond[ii, cv.CC_STAT_AREA]
     width = stats_diamond[ii, cv.CC_STAT_WIDTH]
     height = stats_diamond[ii, cv.CC_STAT_HEIGHT]
-    fracFG = area / (width * height)
-    distFGX = stats_diamond[ii, cv.CC_STAT_LEFT]
-    distFGY = stats_diamond[ii, cv.CC_STAT_TOP]
 
     string = "Label: " + str(ii + 1) + \
              "\n    Area: " + str(area) + \
              "\n    Height: " + str(height) + \
-             "\n    Fraction of Foreground Pixels: %.3f" + \
-             "\n    Distribution of FG Pixels in X: " + str(distFGX) + \
-             "\n    Distribution of FG Pixels in Y: " + str(distFGY) + \
-             "\n ---------------------------------------- \n" % fracFG
+             "\n    Width: " + str(width) + \
+             "\n ---------------------------------------- \n"
 
     print(string)
 
@@ -84,16 +79,12 @@ for ii in range(num_labels_dugong):
     area = stats_dugong[ii, cv.CC_STAT_AREA]
     width = stats_dugong[ii, cv.CC_STAT_WIDTH]
     height = stats_dugong[ii, cv.CC_STAT_HEIGHT]
-    fracFG = area / (width * height)
-    distFGX = stats_dugong[ii, cv.CC_STAT_LEFT]
-    distFGY = stats_dugong[ii, cv.CC_STAT_TOP]
 
     string = "Label: " + str(ii + 1) + \
              "\n    Area: " + str(area) + \
              "\n    Height: " + str(height) + \
-             "\n    Distribution of FG Pixels in X: " + str(distFGX) + \
-             "\n    Distribution of FG Pixels in Y: " + str(distFGY) + \
-             "\n ---------------------------------------- \n" % fracFG
+             "\n    Width: " + str(width) + \
+             "\n ---------------------------------------- \n"
 
     print(string)
 
