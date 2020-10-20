@@ -153,14 +153,30 @@ def knnSegmentation(image, k=2, block_segments=[]):
 
 def CCL(image):
 
+    # x, y = image.shape[2:]
+
+    # centre = (x // 2, y // 2)
+
+    detections = []
+
+# ------------------------------------------------------------------------------
     kernel = np.ones((3, 3), np.uint8)
 
-    # _, thresh = cv.threshold(image, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)
-    _, thresh = cv.threshold(image, 180, 255, cv.THRESH_BINARY)
+    image = cv.GaussianBlur(image, (3, 3), 0)
+    # image = cv.blur(image, (3, 3))
+    # image = cv.medianBlur(image, 5)
 
-    # thresh = cv.dilate(thresh, kernel, iterations=1)    
-    # thresh = cv.erode(thresh, kernel, iterations=1)
+    _, thresh = cv.threshold(image, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)
+    # _, thresh = cv.threshold(image, 180, 255, cv.THRESH_BINARY)
+
+    # cv.imshow("", thresh)
+    # cv.waitKey()
+
+    thresh = cv.dilate(thresh, kernel, iterations=1)    
+    thresh = cv.erode(thresh, kernel, iterations=1)
     thresh = cv.morphologyEx(thresh, cv.MORPH_CLOSE, kernel)
+# ------------------------------------------------------------------------------
+    # thresh = image.copy()
 
     connectivity = 8
 
@@ -178,22 +194,121 @@ def CCL(image):
 
     # print(num_labels)
     count = 0
+
+    selected_stats = []
+    sum_areas = 0
+    sum_heights = 0
+
     for ii, stat in enumerate(stats):
-        # print(stat[cv.CC_STAT_HEIGHT] / stat[cv.CC_STAT_WIDTH])
-        if (abs(stat[cv.CC_STAT_HEIGHT] / stat[cv.CC_STAT_WIDTH] - 2.0) < 0.75) or \
-             (abs(stat[cv.CC_STAT_HEIGHT] / stat[cv.CC_STAT_WIDTH] - 3.0) < 0.75):
-            lef = stat[cv.CC_STAT_LEFT]
-            top = stat[cv.CC_STAT_TOP]            
-            right = stat[cv.CC_STAT_WIDTH] + lef
-            bottom = stat[cv.CC_STAT_HEIGHT] + top
-            cv.rectangle(labeled_image, (lef, top), (right, bottom), (0, 0, 255))
-            # labeled_image = labeled_image[top:bottom, lef:right]
-            # breaK
-            count += 1
-    print(count)
+        width = stat[cv.CC_STAT_WIDTH]
+        height = stat[cv.CC_STAT_HEIGHT]
+        area = stat[cv.CC_STAT_AREA]
+        rect_area = width * height
 
-    return labeled_image
+        # print("Area: " + str(type(rect_area)))
+        # print("Width: " + str(type(width)))
+        # print("Height: " + str(type(height)))
 
+        # left = stat[cv.CC_STAT_LEFT]    
+        # top = stat[cv.CC_STAT_TOP] 
+        fracFG = area / (rect_area)
+
+        if(((fracFG < 0.75) & (fracFG > 0.20)) & (rect_area > 150) & (rect_area < 12000)):
+            # print(stat[cv.CC_STAT_HEIGHT] / stat[cv.CC_STAT_WIDTH])
+            # First condition is for "Ones" the other is for all other numbers 
+            if (abs(height / width - 2.0) < 0.75) or \
+                (abs(height / width - 3.0) < 0.75):
+                # right = width + left
+                # bottom = height + top
+                # cv.rectangle(labeled_image, (left, top), (right, bottom), (0, 255, 0))
+                # roi = image[(top):(bottom), (left):(right)]
+                # detections.append(roi)
+                selected_stats.append(stat)
+                sum_areas += rect_area
+                sum_heights	+= height
+
+                # print("Area: " + str(rect_area))
+                # cv.imshow(str(rect_area + ii), labeled_image[(top):(bottom), (left):(right)])
+        
+                # cv.imshow(str(ii), image[(top - 3):(bottom + 3), (left - 3):(right + 3)])
+                # labeled_image = labeled_image[top:bottom, left:right]
+                # breaK
+                count += 1
+
+    mean_area = sum_areas / count
+    area_thresh = 0.5 * mean_area
+
+    mean_height = sum_heights / count
+    height_thresh = 0.7 * mean_height
+
+    print("Mean: " + str(mean_height))
+    print("Height Thresh: " + str(height_thresh))
+
+    selected_stats = np.asarray(selected_stats)
+
+    for ii, stat in enumerate(selected_stats):
+        width = stat[cv.CC_STAT_WIDTH]
+        height = stat[cv.CC_STAT_HEIGHT]
+        area = stat[cv.CC_STAT_AREA]
+        rect_area = width * height
+        left = stat[cv.CC_STAT_LEFT]    
+        top = stat[cv.CC_STAT_TOP] 
+        fracFG = area / (rect_area)
+
+        # print("Area: " + str(type(rect_area)))
+        # print("Width: " + str(type(width)))
+        # print("Height: " + str(type(height)))
+
+        if (height > height_thresh) & (rect_area > area_thresh):
+            right = width + left
+            bottom = height + top
+            cv.rectangle(labeled_image, (left, top), (right, bottom), (0, 255, 0))
+            roi = image[(top):(bottom), (left):(right)]
+            detections.append(roi)
+
+            print("Area: " + str(rect_area))
+            cv.imshow(str(rect_area + ii), labeled_image[(top):(bottom), (left):(right)])
+
+    
+    cv.imshow(str(ii), labeled_image)
+    print("Count: " + str(count))
+    cv.waitKey()
+
+    return detections
+
+def MSER(image):
+    cp = image.copy()
+    mser = cv.MSER_create(_min_area=100, _max_area=6000)
+    gray = toGray(image)
+
+    # [regions, rects] = mser.detectRegions(gray)
+    regions, _ = mser.detectRegions(gray)
+
+    for p in regions:
+        xmax, ymax = np.amax(p, axis=0)
+        xmin, ymin = np.amin(p, axis=0)
+
+        height = ymax - ymin
+        width = xmax - xmin
+
+        if((abs(height / width - 2.0) < 0.75) or (abs(height / width - 3.0) < 0.75)):
+            print(height * width)
+            roi = cp[ymin:ymax, xmin:xmax]
+            roi = toGray(roi)
+            _, roi= cv.threshold(roi, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)
+            # show(roi)
+            
+            cv.rectangle(cp, (xmin, ymax), (xmax, ymin), (0, 255, 0), 1)
+    # hulls = [cv.convexHull(np.asarray(p).reshape(-1, 1, 2)) for p in regions]
+    # cv.polylines(cp, hulls, 1, (0, 255, 0))
+    return cp
+
+def toGray(image):
+    if len(image.shape) == 3:
+        gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+        return gray
+    else:
+        return image
 
 # def findRectList(thresh, image, noRect=1, startRect=0):
 #     rank_w = [0]
