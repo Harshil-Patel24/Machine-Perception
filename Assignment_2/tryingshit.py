@@ -17,32 +17,27 @@ knn.train(train, cv.ml.ROW_SAMPLE, train_labels)
 
 for ii, fname in enumerate(os.listdir('train')):    
     if fname.endswith('.jpg') or fname.endswith('.png '):
-        og_img = cv.imread('train/' + fname, 0)
- 
-        # cv.imshow(fname, og_img)
-        detections = CCL(og_img)
+        og_img = cv.imread('train/' + fname)
 
-        # for det in detections:
-        #     show(det)
+        og_img = cv.resize(og_img, (300, 350))
 
-        for det in detections:
-            res = cv.resize(det, (28, 40))
-            arr = np.array(res)
-            test = np.reshape(arr, (-1, 1120)).astype(np.float32)
 
-            ret, result, neighbours, dist = knn.findNearest(test, k=1)
-            cv.destroyAllWindows()
-            print("--------------\n")
-        #     cv.namedWindow(str(dist), cv.WINDOW_NORMAL)
-        #     cv.resizeWindow(str(dist), 500, 200)
-        #     cv.imshow(str(dist), det)
-        # cv.waitKey()
-        # cv.destroyAllWindows()
-            # print(int(result))
-        # show(ccl) 
+        og_img = CLAHE(og_img)
+        og_img = cv.convertScaleAbs(og_img, alpha=1.5, beta=10)
+        og_img = cv.GaussianBlur(og_img, (5, 5), 0)
+        
 
-        # show(detections)
 
+        # Find the connected components
+        stats, thresh = CCL(og_img) 
+        show(og_img)
+
+        # Find the predicted regions for "numbers"
+        detections = extractNumbers(stats, thresh)
+        
+        result = detectNum(detections, knn)
+
+        print(result)
 
 
     
