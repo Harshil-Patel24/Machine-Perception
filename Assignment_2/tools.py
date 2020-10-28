@@ -466,7 +466,7 @@ def extractNumbers(stats, thresh):
     further_selected = np.asarray(further_selected)
     stats_sorted =  further_selected[further_selected[:,cv.CC_STAT_TOP].argsort(kind='mergesort')]
     tops = stats_sorted[:,cv.CC_STAT_TOP]
-    # areas = stats_sorted[:, cv.CC_STAT_AREA]
+    areas = stats_sorted[:, cv.CC_STAT_AREA]
 
     # print("Tops: " + str(tops))
     
@@ -478,7 +478,9 @@ def extractNumbers(stats, thresh):
 
     y_tol = 15
     # x_tol = 40
-    # a_tol = (sum_areas / count) * 0.6
+    # a_tol = (sum_areas / count) * 0.4
+    # a_tol_ones = 0.3
+    # a_tol = 10
 
     y_count = 0
     # a_count = 0
@@ -501,13 +503,13 @@ def extractNumbers(stats, thresh):
                 y_keep[ii] = y_count
                 y_keep[ii + 1] = y_count      
 
-            # if (abs(areas[ii] - areas[ii + 1]) < a_tol) & (abs(areas[ii] - areas[ii - 1]) >= a_tol):
+            # if ((abs(areas[ii] - areas[ii + 1]) < a_tol) or (abs((max(areas[ii], areas[ii + 1]) / min(areas[ii], areas[ii + 1])) - 2.0) < a_tol_ones)) & ((abs(areas[ii] - areas[ii - 1]) >= a_tol) or (abs((max(areas[ii], areas[ii + 1]) / min(areas[ii], areas[ii + 1])) - 2.0) >= a_tol_ones)):
             #     # print("a")
             #     a_count += 1
             #     # incs.append(ii)
             #     a_keep[ii] = a_count
             #     a_keep[ii + 1] = a_count
-            # elif (abs(areas[ii] - areas[ii + 1]) < a_tol) & (abs(areas[ii] - areas[ii - 1]) < a_tol):
+            # elif ((abs(areas[ii] - areas[ii + 1]) < a_tol) or (abs((max(areas[ii], areas[ii + 1]) / min(areas[ii], areas[ii + 1])) - 2.0) < a_tol_ones)) & ((abs(areas[ii] - areas[ii - 1]) >= a_tol) or (abs((max(areas[ii], areas[ii + 1]) / min(areas[ii], areas[ii + 1])) - 2.0) < a_tol_ones)):
             #     # print("b")
             #     a_keep[ii] = a_count
             #     a_keep[ii + 1] = a_count     
@@ -524,9 +526,11 @@ def extractNumbers(stats, thresh):
             #     a_keep[ii] = a_count
             #     a_keep[ii + 1] = a_count
 
-        
+        # print("Area thresh ones at " + str(ii) + ": " + str(abs((max(areas[ii], areas[ii + 1]) / min(areas[ii], areas[ii + 1])) - 2.0)))
+        # print("Area thresh at " + str(ii) + ": "+ str(abs(areas[ii] - areas[ii + 1])))
     print(y_keep)
-
+    # print(a_tol)
+    # print(a_keep)
 
     for ii, stat in enumerate(further_selected):
         width = stat[cv.CC_STAT_WIDTH]
@@ -542,9 +546,10 @@ def extractNumbers(stats, thresh):
         curr_y = top + (height // 2)
     # -----------------------------------------TRYING----------------------------------------------------------
         print("Top: " + str(top))
+        print("Area: " + str(area))
         print("Current Y: " + str(curr_y))
         
-        if (y_keep[ii] != 0):
+        if (y_keep[ii] != 0):# & (a_keep[ii] != 0):
             
             roi = thresh[(top-3):(bottom+3), (left-3):(right+3)]
             
@@ -726,10 +731,10 @@ def detectNum(detections, knn):
             result = int(result.ravel()[0])
 
             detected += str(result)
-    if detected == '':
-        detected = None
-    else:
-        detected = int(detected)
+    # if detected == '':
+    #     detected = None
+    # else:
+    #     detected = int(detected)
 
     return detected
 
