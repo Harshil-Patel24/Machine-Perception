@@ -335,7 +335,8 @@ def extractNumbers(stats, thresh):
 
     y = centres_sorted[:,1]
 
-    y_tol = 0.6
+    # y_tol = 10
+    y_tol = 0.5
 
     y_fin = []
 
@@ -463,6 +464,10 @@ def extractNumbers(stats, thresh):
     # print("----------------------------")
 
  # -----------------------------------------TRYING----------------------------------------------------------
+    
+    if len(further_selected) is 0:
+        return further_selected, further_selected, [0, 0, 0, 0]
+
     further_selected = np.asarray(further_selected)
     stats_sorted =  further_selected[further_selected[:,cv.CC_STAT_TOP].argsort(kind='mergesort')]
     tops = stats_sorted[:,cv.CC_STAT_TOP]
@@ -528,7 +533,7 @@ def extractNumbers(stats, thresh):
 
         # print("Area thresh ones at " + str(ii) + ": " + str(abs((max(areas[ii], areas[ii + 1]) / min(areas[ii], areas[ii + 1])) - 2.0)))
         # print("Area thresh at " + str(ii) + ": "+ str(abs(areas[ii] - areas[ii + 1])))
-    print(y_keep)
+    # print(y_keep)
     # print(a_tol)
     # print(a_keep)
 
@@ -545,9 +550,9 @@ def extractNumbers(stats, thresh):
         curr_x = left + (width // 2)
         curr_y = top + (height // 2)
     # -----------------------------------------TRYING----------------------------------------------------------
-        print("Top: " + str(top))
-        print("Area: " + str(area))
-        print("Current Y: " + str(curr_y))
+        # print("Top: " + str(top))
+        # print("Area: " + str(area))
+        # print("Current Y: " + str(curr_y))
         
         if (y_keep[ii] != 0):# & (a_keep[ii] != 0):
             
@@ -572,9 +577,26 @@ def extractNumbers(stats, thresh):
                 # print("z")
                 final_right = right
 
-    cv.destroyAllWindows()
-    detected_area = thresh[final_top:final_bottom, final_left:final_right]
-    show(detected_area, str(ii))
+    # cv.destroyAllWindows()
+
+# final_top = math.inf
+# final_bottom = 0
+# final_right = 0
+# final_left = math.inf
+
+    if (final_top * final_left != math.inf) & (final_bottom * final_right != 0):
+        detected_area = thresh[final_top:final_bottom, final_left:final_right]
+    
+        y = final_top
+        x = final_left
+        w = final_right - final_left
+        h = final_bottom - final_top
+
+        bounding = [x, y, w, h]
+    else:
+        detected_area = []
+        bounding = []
+    # show(detected_area, str(ii))
         # else:
         #     # -----------------------------TESTING-------------------------------------------
         #     thresh = cv.cvtColor(thresh, cv.COLOR_GRAY2BGR)
@@ -589,7 +611,7 @@ def extractNumbers(stats, thresh):
     try:
         final_det = [det for _, det in sorted(zip(position, detections))]
     except ValueError:
-        print("ELSE")
+        # print("ELSE")
         final_det = detections
     
             # final_det = [det for _, det in sorted_det]
@@ -599,7 +621,7 @@ def extractNumbers(stats, thresh):
     # print("Count: " + str(count))
     # cv.waitKey()
 
-    return final_det
+    return final_det, detected_area, bounding
 
 # def contrast(image, contr, bright):
 #     # for y in range(image.shape[0]):
@@ -608,6 +630,11 @@ def extractNumbers(stats, thresh):
 #     #             contrasted = np.clip(contr * image[x, y, z] + bright, 0, 255)
 
 #     return cv.convertScaleAbs(image, alpha=contr, beta=bright)
+
+def writeFile(name, contents):
+    f = open(name, 'w')
+    f.write(contents)
+    f.close()
 
 def extractNumbers2(stats, thresh):
     # show(thresh)
@@ -754,7 +781,6 @@ def MSER(image):
     mser = cv.MSER_create(_min_area=100, _max_area=6000)
     gray = toGray(image)
 
-    # [regions, rects] = mser.detectRegions(gray)
     regions, _ = mser.detectRegions(gray)
 
     for p in regions:
@@ -769,11 +795,9 @@ def MSER(image):
             roi = cp[ymin:ymax, xmin:xmax]
             roi = toGray(roi)
             _, roi= cv.threshold(roi, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)
-            # show(roi)
             
             cv.rectangle(cp, (xmin, ymax), (xmax, ymin), (0, 255, 0), 1)
-    # hulls = [cv.convexHull(np.asarray(p).reshape(-1, 1, 2)) for p in regions]
-    # cv.polylines(cp, hulls, 1, (0, 255, 0))
+
     return cp
 
 def toGray(image):
