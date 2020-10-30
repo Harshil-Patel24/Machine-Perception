@@ -13,7 +13,7 @@ def main(argv):
     elif len(argv) == 1:
         directory = argv[0]
     else:
-        directory = 'train'
+        directory = '/home/student/test'
 
     # Train our SVM model
     svm = trainSVM()
@@ -26,10 +26,10 @@ def main(argv):
             img = cv.resize(img, (300, 330))
             
             # Some images have glare, so use CLAHE to reduce glare
-            clahe = CLAHE(img,  clipLimit=0.3)
+            clahe = CLAHE(img,  clipLimit=0.4, tileGridSize=(3,3))
 
             # Apply a gaussian blur to reduce noise in the images
-            gauss = cv.GaussianBlur(clahe, (3, 3), 0)
+            gauss = cv.GaussianBlur(clahe, (5, 7), 0)
     
             close = cv.dilate(gauss, (5, 5))      
 
@@ -46,16 +46,16 @@ def main(argv):
                 # This just takes the number from the file name
                 imName = fname[2:-4]    
 
-                det_area_name = directory + '-DetectedArea' + imName + '.jpg'
-                bounding_box_name = directory + '-BoundingBox' + imName + '.txt'
-                house_name = directory + '-House' + imName + '.txt'
+                det_area_name = 'DetectedArea' + imName + '.jpg'
+                bounding_box_name = 'BoundingBox' + imName + '.txt'
+                house_name = 'House' + imName + '.txt'
 
                 bounding_box = 'X: ' + str(bounding[0]) + '\nY: ' + str(bounding[1]) +\
                     '\nW: ' + str(bounding[2]) + '\nH: ' + str(bounding[3])
                 # Write results to file
-                cv.imwrite('output/' + det_area_name, det_area)
-                writeFile('output/' + bounding_box_name, bounding_box)
-                writeFile('output/' + house_name, result)
+                cv.imwrite('/home/student/output/' + det_area_name, det_area)
+                writeFile('/home/student/output/' + bounding_box_name, bounding_box)
+                writeFile('/home/student/output/' + house_name, result)
             else:
                 print('No numbers detected')
 

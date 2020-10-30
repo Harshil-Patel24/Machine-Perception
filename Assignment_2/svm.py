@@ -6,15 +6,16 @@ from tools import *
 labels = []
 hogs = []
 # Iterate through all training data
-for ii, dname in enumerate(os.listdir('digits')):
-    path = 'digits/' + dname
-
-    for jj, fname in enumerate(os.listdir(path)):
-        img = cv.imread(path + '/' + fname, cv.IMREAD_GRAYSCALE)
-        # Create the training labels
-        labels.append(ii)
+for ii, dname in enumerate(os.listdir('/home/student/train')):
+	path = '/home/student/train/' + dname
+	print(dname)
+	for jj, fname in enumerate(os.listdir(path)):
+		print(fname)
+		img = cv.imread(path + '/' + fname, cv.IMREAD_GRAYSCALE)
+		# Create the training labels
+		labels.append(int(dname))
         # Create the training dataset
-        hogs.append(hog(img))
+		hogs.append(hog(img))
 
 
 hogs = np.array(hogs).astype(np.float32)
