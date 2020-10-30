@@ -4,6 +4,8 @@ import math
 
 bin_n = 16
 
+# Function for reducing glare
+# https://stackoverflow.com/questions/25008458/how-to-apply-clahe-on-rgb-color-images
 def CLAHE(image, clipLimit=1.0, tileGridSize=(5, 5)):
     img = image.copy()
     if len(image.shape) != 3:
@@ -18,8 +20,8 @@ def CLAHE(image, clipLimit=1.0, tileGridSize=(5, 5)):
     img = cv.cvtColor(lab, cv.COLOR_LAB2BGR)
     return img
 
+# Find Connected Components
 def CCL(image):
-# ------------------------------------------------------------------------------
     kernel = np.ones((3, 3), np.uint8)
 
     image = toGray(image)
@@ -44,11 +46,10 @@ def CCL(image):
 
     return stats, thresh
 
+
+# Extract the numbers
 def extractNumbers(stats, thresh, img):
-
-    test_img = thresh.copy()
-
-
+    
     count = 0
     detections = []
     position = []
@@ -58,6 +59,7 @@ def extractNumbers(stats, thresh, img):
     sum_heights = 0
 
     centres = []
+    # Iterate through the CCL stats
     for ii, stat in enumerate(stats):
         width = stat[cv.CC_STAT_WIDTH]
         height = stat[cv.CC_STAT_HEIGHT]
@@ -67,26 +69,32 @@ def extractNumbers(stats, thresh, img):
         top = stat[cv.CC_STAT_TOP] 
         fracFG = area / (rect_area)
 
-        if(((fracFG < 0.95) & (fracFG > 0.15)) & (rect_area > 200) & (rect_area < 12000)):
+        # First filter gets rid of all detections too small, too big, and too much background or foreground
+        if(((fracFG < 0.95) & (fracFG > 0.15)) & (rect_area > 200) & (rect_area < 25000)):
 
-
+            # This will take all detections with a height:width ratio close to 2:1 (for 0, 2-9) and 3.5:1 (for 1) 
+            # As digits abide by this ratio
             if (abs(height / width - 2.0) < 0.85) or \
                 (abs(height / width - 3.5) < 1.2):
                 
                 selected_stats.append(stat)
+                # Sums are used to find means
                 sum_areas += rect_area
                 sum_heights	+= height
 
+                # Kept to sort by height
                 centres.append(((left + (width // 2)), (top + (height // 2))))
 
                 count += 1
 
+    # If its empty, return the empty array
     if not len(centres):
         return centres
 
     selected_stats = np.asarray(selected_stats)
 
     centres = np.asarray(centres)
+    # Sort by y position of centers
     centres_sorted = centres[centres[:,1].argsort(kind='mergesort')]
 
     y = centres_sorted[:,1]
@@ -95,6 +103,7 @@ def extractNumbers(stats, thresh, img):
 
     y_fin = []
 
+    # Keep if close in 'y' proximity to neighbours
     for n in range(len(y) - 1):
         if abs(y[n] - y[n + 1]) < y[n] * y_tol:
             if y[n] in y_fin:
@@ -102,12 +111,13 @@ def extractNumbers(stats, thresh, img):
             else:
                 y_fin.append(y[n])  
                 y_fin.append(y[n + 1])
-
+    # Unless there is only 1 detection
     if(len(y) <= 2):
         y_fin = y
 
     y_fin = np.asarray(y_fin)
 
+    # Calculate means, and therefore make thresholds
     if count != 0:       
         mean_area = sum_areas / count
         area_thresh = 0.3 * mean_area
@@ -141,13 +151,16 @@ def extractNumbers(stats, thresh, img):
         curr_x = left + (width // 2)
         curr_y = top + (height // 2)
 
+        # Only let through if it passes these thresholds and is in y_fin
         if (height > height_thresh) & (rect_area > area_thresh) & (curr_y in y_fin):
-                  
+
             further_selected.append(stat)
     
     if len(further_selected) == 0:
         return further_selected, further_selected, [0, 0, 0, 0]
 
+    # Round 2 of filtering as first round might not have caught all bad digits
+    # First round used percentage difference from neighbours, this round uses constant difference from neighbours as threshold
     further_selected = np.asarray(further_selected)
     stats_sorted =  further_selected[further_selected[:,cv.CC_STAT_TOP].argsort(kind='mergesort')]
     tops = stats_sorted[:,cv.CC_STAT_TOP]
@@ -192,14 +205,15 @@ def extractNumbers(stats, thresh, img):
         fracFG = area / (rect_area)
         curr_x = left + (width // 2)
         curr_y = top + (height // 2)
-        
+        # Now we keep everything else
         if (y_keep[ii] != 0):
             
             roi = img[(top-3):(bottom+3), (left-3):(right+3)]
             
             detections.append(roi)
+            # Positions is so we can sort them left to right so our number is in correct order
             position.append(left)
-
+            # Finds extreme left, right, top and bottom points for our detected area
             if(top < final_top):
                 final_top = top
 
@@ -212,6 +226,7 @@ def extractNumbers(stats, thresh, img):
             if(right > final_right):
                 final_right = right
 
+    # Checks that none of the values were bad
     if (final_top * final_left != math.inf) & (final_bottom * final_right != 0):
         detected_area = img[final_top:final_bottom, final_left:final_right]
     
@@ -225,17 +240,21 @@ def extractNumbers(stats, thresh, img):
         detected_area = []
         bounding = []
     try:
+        # Sort the detections left to right
         final_det = [det for _, det in sorted(zip(position, detections))]
     except ValueError:
         final_det = detections
     
     return final_det, detected_area, bounding
 
+# Writing to file
 def writeFile(name, contents):
     f = open(name, 'w')
     f.write(contents)
     f.close()
 
+# Calculate HOG
+# https://stackoverflow.com/questions/6090399/get-hog-image-features-from-opencv-python
 def hog(img):
     img = cv.resize(img, (64, 128))
 
@@ -257,7 +276,7 @@ def trainSVM():
     svm = svm.load('svm_data.dat')
     return svm
 
-
+# Detect the numbers
 def detectNum(detections, svm):
 
     detected = ""
@@ -266,52 +285,18 @@ def detectNum(detections, svm):
         if det.size:
 
             test = toGray(det)
-        
+            # Calc hog for SVM
             test = np.array(hog(test)).astype(np.float32).reshape(1, -1)
-
+            # Predict result
             result = svm.predict(test)
-
+            # Get the number of the result
             result = str(result[1].ravel()[0].astype(np.uint8))
-
+            # Append to string
             detected += result
 
     return detected
 
-def trainKNN():
-    with np.load('knn_data.npz') as data:
-        train = data['train'] 
-        train_labels = data['train_labels']
-
-    knn = cv.ml.KNearest_create() 
-    knn.train(train, cv.ml.ROW_SAMPLE, train_labels) 
-
-    return knn
-
-
-def MSER(image):
-    cp = image.copy()
-    mser = cv.MSER_create(_min_area=100, _max_area=6000)
-    gray = toGray(image)
-
-    regions, _ = mser.detectRegions(gray)
-
-    for p in regions:
-        xmax, ymax = np.amax(p, axis=0)
-        xmin, ymin = np.amin(p, axis=0)
-
-        height = ymax - ymin
-        width = xmax - xmin
-
-        if((abs(height / width - 2.0) < 0.75) or (abs(height / width - 3.0) < 0.75)):
-            print(height * width)
-            roi = cp[ymin:ymax, xmin:xmax]
-            roi = toGray(roi)
-            _, roi= cv.threshold(roi, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)
-            
-            cv.rectangle(cp, (xmin, ymax), (xmax, ymin), (0, 255, 0), 1)
-
-    return cp
-
+# Convert to gray
 def toGray(image):
     if len(image.shape) == 3:
         gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -319,6 +304,7 @@ def toGray(image):
     else:
         return image
 
+# Show an image
 def show(image, message="", delay=0):
     cv.imshow(message, image)
     cv.waitKey(delay)

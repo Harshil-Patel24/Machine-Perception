@@ -6,7 +6,7 @@ from tools import *
 from matplotlib import pyplot as plt
 
 def main(argv):
-
+    # Controller to allow for different input directories 
     if len(argv) > 1:
         print('usage: python3 assignment.py <image-directory>')
         exit(0)
@@ -15,8 +15,10 @@ def main(argv):
     else:
         directory = 'train'
 
+    # Train our SVM model
     svm = trainSVM()
 
+    # Iterate through directory and find all images
     for ii, fname in enumerate(os.listdir(directory)):    
         if fname.endswith('.jpg') or fname.endswith('.png'):
             img = cv.imread(directory + '/' + fname)
@@ -37,10 +39,11 @@ def main(argv):
             # Find the predicted regions for "numbers"
             detections, det_area, bounding = extractNumbers(stats, thresh, img)
             
+            # Detect images if there are detections
             if(len(detections) != 0):
 
                 result = detectNum(detections, svm) 
-
+                # This just takes the number from the file name
                 imName = fname[2:-4]    
 
                 det_area_name = directory + '-DetectedArea' + imName + '.jpg'
@@ -49,7 +52,7 @@ def main(argv):
 
                 bounding_box = 'X: ' + str(bounding[0]) + '\nY: ' + str(bounding[1]) +\
                     '\nW: ' + str(bounding[2]) + '\nH: ' + str(bounding[3])
-
+                # Write results to file
                 cv.imwrite('output/' + det_area_name, det_area)
                 writeFile('output/' + bounding_box_name, bounding_box)
                 writeFile('output/' + house_name, result)
